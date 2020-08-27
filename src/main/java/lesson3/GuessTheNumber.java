@@ -5,7 +5,8 @@ import java.util.Scanner;
 
 public class GuessTheNumber {
     public static void main(String[] args) {
-        int number = new Random().nextInt(9) ;
+        int number = new Random().nextInt(9);
+        int tryNumber = 0;
         System.out.println("Угадайте число от 0 до 9:");
         while (true) {
             System.out.println("введите число:");
@@ -14,11 +15,22 @@ public class GuessTheNumber {
                 scanner.nextLine();
                 continue;
             }
+            tryNumber++;
             int scanned = scanner.nextInt();
             if (scanned == number) {
                 System.out.println("ВЕРНО!");
                 if (continueGame(scanner)) {
                     number = new Random().nextInt(9);
+                    tryNumber = 0;
+                } else {
+                    System.out.println("Спасибо за игру!");
+                    break;
+                }
+            } else if (tryNumber > 2) {
+                System.out.println("НЕ УГАДАЛИ!!");
+                if (continueGame(scanner)) {
+                    number = new Random().nextInt(9);
+                    tryNumber = 0;
                 } else {
                     System.out.println("Спасибо за игру!");
                     break;
