@@ -10,15 +10,16 @@ public class Test {
         int catsCount = random.nextInt(10) + 1;
         Cat[] cats = new Cat[catsCount];
         for (int i = 0; i < catsCount; i++) {
-            cats[i] = new Cat("Cat " + i, random.nextInt(50)+1);
+            cats[i] = new Cat("Cat " + i, random.nextInt(50) + 1);
         }
 
         Plate plate = new Plate(random.nextInt(10) * 10);
         plate.info();
 
         for (Cat cat : cats) {
-            cat.eat(plate);
-
+            if (cat.getAppetite() >= plate.getFood()) {
+                cat.eat(plate);
+            }
             System.out.println(cat);
             plate.info();
             if (!cat.isSatiety()) {
@@ -28,7 +29,7 @@ public class Test {
         }
 
         for (Cat cat : cats) {
-            System.out.println("Cat "+ cat.getName() +", satiety: " + cat.isSatiety());
+            System.out.println("Cat " + cat.getName() + ", satiety: " + cat.isSatiety());
         }
 
     }
