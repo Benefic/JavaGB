@@ -65,7 +65,7 @@ public class GameGiu extends JFrame {
                 JOptionPane.showMessageDialog(null,
                         message,
                         "GAME OVER!",
-                        JOptionPane.WARNING_MESSAGE);
+                        JOptionPane.INFORMATION_MESSAGE);
                 setVisible(false);
                 System.exit(0);
             }
