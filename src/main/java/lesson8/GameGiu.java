@@ -59,7 +59,7 @@ public class GameGiu extends JFrame {
                         message = "I'm WIN! Ha-Ha!";
                         break;
                     default:
-                        message = "Wou WIN!";
+                        message = "You WIN!";
                 }
 
                 JOptionPane.showMessageDialog(null,
