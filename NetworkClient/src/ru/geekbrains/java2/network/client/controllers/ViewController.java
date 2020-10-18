@@ -10,11 +10,15 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import ru.geekbrains.java2.network.client.NetworkChatClient;
 import ru.geekbrains.java2.network.client.models.ChatItem;
+import ru.geekbrains.java2.network.client.models.Message;
 import ru.geekbrains.java2.network.client.models.Network;
 import ru.geekbrains.java2.network.client.repository.ChatsRepository;
 import ru.geekbrains.java2.network.client.repository.TestChatsRepository;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.List;
 
 public class ViewController {
 
@@ -30,10 +34,10 @@ public class ViewController {
     private Network network;
     private ChatItem currentChat;
     private ChatItem groupChat;
-
+    ChatsRepository repository = new TestChatsRepository();
     @FXML
     public void initialize() {
-        ChatsRepository repository = new TestChatsRepository();
+
         groupChat = repository.getCommonGroup();
         currentChat = groupChat;
         ObservableList<ChatItem> chatsData = FXCollections.observableArrayList(repository.getAllChats());
@@ -58,13 +62,13 @@ public class ViewController {
 
     private void fillChat() {
         chatHistory.clear();
-        for (String message : currentChat.getMessages()) {
+        for (Message message : currentChat.getMessages()) {
             appendMessage(message);
         }
     }
 
     public void fillChat(String name) {
-        if (name.equals(currentChat.getName()) || (currentChat == groupChat && name.equals("/common"))) {
+        if ((currentChat == groupChat && name.equals(groupChat.getName())) || name.equals(currentChat.getName())) {
             fillChat();
         }
     }
@@ -73,17 +77,16 @@ public class ViewController {
         String message = textField.getText();
         if (message != null && !message.isBlank()) {
             String myMessage = "Я: " + message;
-            appendMessage(myMessage);
-            currentChat.addMessage(myMessage);
+            appendMessage(new Message(new Date(), myMessage));
+            currentChat.addMessage(myMessage, new Date());
             textField.clear();
 
             try {
                 if (currentChat != groupChat) {
-                    message = String.format("/w %s %s", currentChat.getName(), message);
+                    network.sendPrivateMessage(message, currentChat.getName());
                 } else {
-                    message = String.format("/common %s %s", network.getUsername(), message);
+                    network.sendMessage(message);
                 }
-                network.getOutputStream().writeUTF(message);
             } catch (IOException e) {
                 e.printStackTrace();
                 String errorMessage = "Failed to send message";
@@ -96,8 +99,22 @@ public class ViewController {
         this.network = network;
     }
 
-    public void appendMessage(String message) {
-        chatHistory.appendText(message);
+    public void appendMessage(Message message) {
+        String timestamp = DateFormat.getInstance().format(message.getTimestamp());
+        chatHistory.appendText(timestamp);
         chatHistory.appendText(System.lineSeparator());
+        chatHistory.appendText(message.getMessage());
+        chatHistory.appendText(System.lineSeparator());
+        chatHistory.appendText(System.lineSeparator());
+    }
+
+    public void showError(String title, String message) {
+        NetworkChatClient.showNetworkError(message, title);
+    }
+
+    public void updateUsers(List<String> users) {
+        // убираем ненужное, добавляем новое
+        ObservableList<ChatItem> chatsData = FXCollections.observableArrayList(repository.getChats(users));
+        usersList.setItems(new SortedList<>(chatsData).sorted());
     }
 }

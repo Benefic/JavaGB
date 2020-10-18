@@ -1,5 +1,6 @@
 package ru.geekbrains.java2.network.server.chat;
 
+import ru.geekbrains.java2.network.clientserver.Command;
 import ru.geekbrains.java2.network.server.chat.auth.AuthService;
 import ru.geekbrains.java2.network.server.chat.auth.BaseAuthService;
 import ru.geekbrains.java2.network.server.chat.handler.ClientHandler;
@@ -55,38 +56,33 @@ public class MyServer {
         return authService;
     }
 
-    public synchronized void broadcastMessage(String message, ClientHandler sender) throws IOException {
+    public synchronized void broadcastMessage(ClientHandler sender, Command command) throws IOException {
         for (ClientHandler client : clients) {
             if (client == sender) {
                 continue;
             }
-            client.sendMessage(message);
+            client.sendMessage(command);
         }
     }
 
-    public synchronized void sendMessage(String message, ClientHandler sender) throws IOException {
-        String[] parts = message.split("\\s+", 3);
-        String command = parts[0];
-        String chat = parts[1];
-        String messageText = parts[2];
-        if (command.equals("/w")) {
-            for (ClientHandler client : clients) {
-                if (client.getUsername().equals(chat)) {
-                    client.sendMessage(sender.getUsername() + " " + chat + " " + messageText);
-                    break;
-                }
-            }
-        } else {
-            broadcastMessage(command + " " + chat + " " + messageText, sender);
-        }
-    }
-
-    public synchronized void subscribe(ClientHandler handler) {
+    public synchronized void subscribe(ClientHandler handler) throws IOException {
         clients.add(handler);
+        List<String> usernames = getAllUserNames();
+        broadcastMessage(null, Command.updateUsersListCommand(usernames));
     }
 
-    public synchronized void unsubscribe(ClientHandler handler) {
+    public synchronized void unsubscribe(ClientHandler handler) throws IOException {
         clients.remove(handler);
+        List<String> usernames = getAllUserNames();
+        broadcastMessage(null, Command.updateUsersListCommand(usernames));
+    }
+
+    private List<String> getAllUserNames() {
+        List<String> usernames = new ArrayList<>();
+        for (ClientHandler client : clients) {
+            usernames.add(client.getUsername());
+        }
+        return usernames;
     }
 
     public synchronized boolean isNicknameAlreadyBusy(String username) {
@@ -98,4 +94,11 @@ public class MyServer {
         return false;
     }
 
+    public void sendPrivateMessage(String recipient, Command command) throws IOException {
+        for (ClientHandler client : clients) {
+            if (client.getUsername().equals(recipient)) {
+                client.sendMessage(command);
+            }
+        }
+    }
 }
