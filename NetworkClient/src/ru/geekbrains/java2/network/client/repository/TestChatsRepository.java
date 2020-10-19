@@ -4,6 +4,7 @@ package ru.geekbrains.java2.network.client.repository;
 import ru.geekbrains.java2.network.client.models.ChatItem;
 import ru.geekbrains.java2.network.client.models.SimpleChatItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TestChatsRepository implements ChatsRepository {
@@ -36,6 +37,16 @@ public class TestChatsRepository implements ChatsRepository {
     @Override
     public ChatItem getCommonGroup() {
         return commonGroup;
+    }
+
+    @Override
+    public List<ChatItem> getChats(List<String> users) {
+        List<ChatItem> chats = new ArrayList<>();
+        chats.add(getCommonGroup());
+        for (String user : users) {
+            chats.add(getChatByName(user));
+        }
+        return chats;
     }
 
     @Override

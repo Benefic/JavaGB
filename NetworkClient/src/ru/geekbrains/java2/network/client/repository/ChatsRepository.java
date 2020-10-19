@@ -9,4 +9,6 @@ public interface ChatsRepository {
     List<ChatItem> getAllChats();
 
     ChatItem getCommonGroup();
+
+    List<ChatItem> getChats(List<String> users);
 }
