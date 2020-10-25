@@ -1,13 +1,15 @@
 package ru.geekbrains.java2.network.server.chat;
 
 import ru.geekbrains.java2.network.clientserver.Command;
+import ru.geekbrains.java2.network.clientserver.UserData;
 import ru.geekbrains.java2.network.server.chat.auth.AuthService;
-import ru.geekbrains.java2.network.server.chat.auth.BaseAuthService;
+import ru.geekbrains.java2.network.server.chat.auth.DatabaseAuthService;
 import ru.geekbrains.java2.network.server.chat.handler.ClientHandler;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,13 +22,19 @@ public class MyServer {
 
     public MyServer(int port) throws IOException {
         this.serverSocket = new ServerSocket(port);
-        this.authService = new BaseAuthService();
+        this.authService = new DatabaseAuthService();
     }
 
     public void start() throws IOException {
         System.out.println("Сервер был запущен");
 
-        authService.start();
+        try {
+            authService.start();
+        } catch (ClassNotFoundException | SQLException e) {
+            System.err.println("Unable to create AuthService");
+            e.printStackTrace();
+            return;
+        }
         try {
             while (!serverSocket.isClosed()) {
                 waitAndProcessNewClientConnection();
@@ -35,7 +43,12 @@ public class MyServer {
             System.err.println("Failed to accept new connection");
             e.printStackTrace();
         } finally {
-            authService.stop();
+            try {
+                authService.stop();
+            } catch (SQLException e) {
+                System.err.println("Failed to close AuthService");
+                e.printStackTrace();
+            }
             serverSocket.close();
         }
     }
@@ -56,47 +69,54 @@ public class MyServer {
         return authService;
     }
 
-    public synchronized void broadcastMessage(ClientHandler sender, Command command) throws IOException {
+    public synchronized void broadcastMessage(ClientHandler sender, Command command, boolean excludeSelf) throws IOException {
         for (ClientHandler client : clients) {
-            if (client == sender) {
+            if (excludeSelf && client == sender) {
                 continue;
             }
             client.sendMessage(command);
         }
     }
 
+    public synchronized void broadcastMessage(ClientHandler sender, Command command) throws IOException {
+        broadcastMessage(sender, command, true);
+    }
+
     public synchronized void subscribe(ClientHandler handler) throws IOException {
         clients.add(handler);
-        List<String> usernames = getAllUserNames();
-        broadcastMessage(null, Command.updateUsersListCommand(usernames));
+        broadcastUsersListUpdate();
     }
 
     public synchronized void unsubscribe(ClientHandler handler) throws IOException {
         clients.remove(handler);
-        List<String> usernames = getAllUserNames();
-        broadcastMessage(null, Command.updateUsersListCommand(usernames));
+        broadcastUsersListUpdate();
     }
 
-    private List<String> getAllUserNames() {
-        List<String> usernames = new ArrayList<>();
+    public void broadcastUsersListUpdate() throws IOException {
+        List<UserData> usernames = getAllUserNames();
+        broadcastMessage(null, Command.updateUsersListCommand(usernames), true);
+    }
+
+    private List<UserData> getAllUserNames() {
+        List<UserData> usernames = new ArrayList<>();
         for (ClientHandler client : clients) {
-            usernames.add(client.getUsername());
+            usernames.add(new UserData(client.getUser().getId(), client.getUsername()));
         }
         return usernames;
     }
 
-    public synchronized boolean isNicknameAlreadyBusy(String username) {
+    public synchronized boolean isUserAlreadyLogon(User user) {
         for (ClientHandler client : clients) {
-            if (client.getUsername().equals(username)) {
+            if (client.getUser().equals(user)) {
                 return true;
             }
         }
         return false;
     }
 
-    public void sendPrivateMessage(String recipient, Command command) throws IOException {
+    public void sendPrivateMessage(int recipient, Command command) throws IOException {
         for (ClientHandler client : clients) {
-            if (client.getUsername().equals(recipient)) {
+            if (client.getUser().getId() == recipient) {
                 client.sendMessage(command);
             }
         }

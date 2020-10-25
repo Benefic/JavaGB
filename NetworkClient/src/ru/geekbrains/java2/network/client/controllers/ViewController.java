@@ -3,27 +3,30 @@ package ru.geekbrains.java2.network.client.controllers;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import ru.geekbrains.java2.network.client.NetworkChatClient;
 import ru.geekbrains.java2.network.client.models.ChatItem;
 import ru.geekbrains.java2.network.client.models.Message;
 import ru.geekbrains.java2.network.client.models.Network;
 import ru.geekbrains.java2.network.client.repository.ChatsRepository;
 import ru.geekbrains.java2.network.client.repository.TestChatsRepository;
+import ru.geekbrains.java2.network.clientserver.UserData;
 
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 public class ViewController {
 
     @FXML
     public ListView<ChatItem> usersList;
+
+    public @FXML
+    Button changeNickButton;
 
     @FXML
     private Button sendButton;
@@ -35,6 +38,7 @@ public class ViewController {
     private ChatItem currentChat;
     private ChatItem groupChat;
     ChatsRepository repository = new TestChatsRepository();
+
     @FXML
     public void initialize() {
 
@@ -43,7 +47,7 @@ public class ViewController {
         ObservableList<ChatItem> chatsData = FXCollections.observableArrayList(repository.getAllChats());
         usersList.setItems(new SortedList<>(chatsData).sorted());
         usersList.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            fillChat(newValue);
+            fillChat(newValue == null ? oldValue : newValue);
             setEnabled();
         });
         sendButton.setOnAction(event -> sendMessage());
@@ -83,7 +87,7 @@ public class ViewController {
 
             try {
                 if (currentChat != groupChat) {
-                    network.sendPrivateMessage(message, currentChat.getName());
+                    network.sendPrivateMessage(message, currentChat.getID());
                 } else {
                     network.sendMessage(message);
                 }
@@ -112,9 +116,31 @@ public class ViewController {
         NetworkChatClient.showNetworkError(message, title);
     }
 
-    public void updateUsers(List<String> users) {
+    public void updateUsers(List<UserData> users) {
         // убираем ненужное, добавляем новое
         ObservableList<ChatItem> chatsData = FXCollections.observableArrayList(repository.getChats(users));
         usersList.setItems(new SortedList<>(chatsData).sorted());
+    }
+
+    public void changeNick(ActionEvent actionEvent) {
+        TextInputDialog dialog = new TextInputDialog();
+
+        dialog.setTitle("Nickname change");
+        dialog.setContentText("New name:");
+        dialog.setHeaderText(null);
+        Optional<String> result = dialog.showAndWait();
+
+        result.ifPresent(name -> {
+            try {
+                changeNickname(name);
+            } catch (IOException e) {
+                e.printStackTrace();
+                showError("Error!", e.getMessage());
+            }
+        });
+    }
+
+    private void changeNickname(String name) throws IOException {
+        network.changeNick(name);
     }
 }

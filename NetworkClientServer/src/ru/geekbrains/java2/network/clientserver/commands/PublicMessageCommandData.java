@@ -4,10 +4,10 @@ import java.io.Serializable;
 
 public class PublicMessageCommandData implements Serializable {
 
-    private final String sender;
+    private final int sender;
     private final String message;
 
-    public PublicMessageCommandData(String sender, String message) {
+    public PublicMessageCommandData(int sender, String message) {
         this.sender = sender;
         this.message = message;
     }
@@ -16,7 +16,7 @@ public class PublicMessageCommandData implements Serializable {
         return message;
     }
 
-    public String getSender() {
+    public int getSender() {
         return sender;
     }
 }

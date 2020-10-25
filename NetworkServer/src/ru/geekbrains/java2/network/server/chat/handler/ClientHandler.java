@@ -2,10 +2,9 @@ package ru.geekbrains.java2.network.server.chat.handler;
 
 import ru.geekbrains.java2.network.clientserver.Command;
 import ru.geekbrains.java2.network.clientserver.CommandType;
-import ru.geekbrains.java2.network.clientserver.commands.AuthCommandData;
-import ru.geekbrains.java2.network.clientserver.commands.PrivateMessageCommandData;
-import ru.geekbrains.java2.network.clientserver.commands.PublicMessageCommandData;
+import ru.geekbrains.java2.network.clientserver.commands.*;
 import ru.geekbrains.java2.network.server.chat.MyServer;
+import ru.geekbrains.java2.network.server.chat.User;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -23,7 +22,7 @@ public class ClientHandler {
     private ObjectInputStream in;
     private ObjectOutputStream out;
 
-    private String username;
+    private User user;
 
     public ClientHandler(MyServer myServer, Socket clientSocket) {
         this.myServer = myServer;
@@ -53,7 +52,11 @@ public class ClientHandler {
     }
 
     public String getUsername() {
-        return username;
+        return user.getUsername();
+    }
+
+    public User getUser() {
+        return this.user;
     }
 
     private void readMessages() throws IOException {
@@ -69,15 +72,25 @@ public class ClientHandler {
                 }
                 case PRIVATE_MESSAGE -> {
                     PrivateMessageCommandData data = (PrivateMessageCommandData) command.getData();
-                    String recipient = data.getReceiver();
+                    int recipient = data.getReceiverID();
                     String message = data.getMessage();
-                    myServer.sendPrivateMessage(recipient, Command.messageInfoCommand(message, username));
+                    myServer.sendPrivateMessage(recipient, Command.messageInfoCommand(message, user.getId()));
                 }
                 case PUBLIC_MESSAGE -> {
                     PublicMessageCommandData data = (PublicMessageCommandData) command.getData();
                     String message = data.getMessage();
-                    String sender = data.getSender();
+                    int sender = data.getSender();
                     myServer.broadcastMessage(this, Command.messageInfoCommand(message, sender, true));
+                }
+                case NICKNAME_CHANGE -> {
+                    NickNameChangeCommandData data = (NickNameChangeCommandData) command.getData();
+                    String name = data.getNickname();
+                    if (myServer.getAuthService().changeUserNick(name, user)) {
+                        user.setUsername(name);
+                        myServer.broadcastUsersListUpdate();
+                    } else {
+                        sendMessage(Command.authErrorCommand("Error changing nickname!"));
+                    }
                 }
                 default -> System.err.println("Unknown type of command: " + command.getType());
             }
@@ -101,34 +114,36 @@ public class ClientHandler {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                if (username == null) {
+                if (user == null) {
                     try {
                         sendMessage(Command.authErrorCommand("Authentication timeout!"));
+                        Thread.sleep(100);
                         closeConnection();
-                    } catch (IOException e) {
+                    } catch (IOException | InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             }
         }, AUTH_TIMEOUT);
-        try {
-            while (isConnected()) {
-                Command command = readCommand();
-                if (command == null) {
-                    continue;
-                }
-                if (command.getType() == CommandType.AUTH) {
-                    boolean isSuccessAuth = processAuthCommand(command);
-                    if (isSuccessAuth) {
-                        break;
-                    }
-                } else {
-                    sendMessage(Command.authErrorCommand("Auth command is required!"));
-                }
-
+        while (isConnected()) {
+            Command command = readCommand();
+            if (command == null) {
+                continue;
             }
-        } catch (IOException e) {
-            throw e;
+            if (command.getType() == CommandType.AUTH) {
+                boolean isSuccessAuth = processAuthCommand(command);
+                if (isSuccessAuth) {
+                    break;
+                }
+            } else if (command.getType() == CommandType.REGISTRATION) {
+                boolean isSuccessReg = processRegCommand(command);
+                if (isSuccessReg) {
+                    break;
+                }
+            } else {
+                sendMessage(Command.authErrorCommand("Auth or registration command is required!"));
+            }
+
         }
     }
 
@@ -137,21 +152,51 @@ public class ClientHandler {
         String login = commandData.getLogin();
         String password = commandData.getPassword();
 
-        this.username = myServer.getAuthService().getUsernameByLoginAndPassword(login, password);
-        if (username != null) {
-            if (myServer.isNicknameAlreadyBusy(username)) {
-                sendMessage(Command.authErrorCommand("Login and password are already used!"));
+        this.user = myServer.getAuthService().getUserByLoginAndPassword(login, password);
+        if (user != null) {
+            if (myServer.isUserAlreadyLogon(user)) {
+                sendMessage(Command.authErrorCommand("User is already in!"));
                 return false;
             }
-            sendMessage(Command.authOkCommand(username));
-            myServer.broadcastMessage(this, Command.messageInfoCommand(username + " joined to chat!", username, true));
+            sendMessage(Command.authOkCommand(user.getUsername(), user.getId()));
             myServer.subscribe(this);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                return false;
+            }
+            myServer.broadcastMessage(this, Command.messageInfoCommand(user.getUsername() + " joined to chat!", user.getId(), true));
             return true;
         } else {
             sendMessage(Command.authErrorCommand("Login and/or password are invalid! Please, try again"));
             return false;
         }
 
+    }
+
+    private boolean processRegCommand(Command command) throws IOException {
+        RegistrationCommandData commandData = (RegistrationCommandData) command.getData();
+        String login = commandData.getLogin();
+        String password = commandData.getPassword();
+        String nickname = commandData.getName();
+
+        User newUser = myServer.getAuthService().getUserByLogin(login);
+        if (newUser != null) {
+            sendMessage(Command.authErrorCommand("Login is busy!"));
+            return false;
+        } else {
+            newUser = myServer.getAuthService().createUser(login, password, nickname);
+            if (newUser == null) {
+                sendMessage(Command.authErrorCommand("Failed to register!"));
+                return false;
+            }
+            this.user = newUser;
+            sendMessage(Command.registrationSuccessCommand(user.getId()));
+            myServer.broadcastMessage(this, Command.messageInfoCommand(user.getUsername() + " joined to chat!", user.getId(), true));
+            myServer.subscribe(this);
+        }
+        return true;
     }
 
     private void closeConnection() throws IOException {
