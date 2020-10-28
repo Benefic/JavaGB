@@ -1,5 +1,7 @@
 package ru.geekbrains.java2.network.client.models;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -12,9 +14,15 @@ public class SimpleChatItem implements ChatItem {
     private final List<Message> messages = new LinkedList<>();
     private StringProperty name;
     private boolean isOnline;
+    private IntegerProperty ID;
+
+    public SimpleChatItem(String name, int ID) {
+        setName(name);
+        setID(ID);
+    }
 
     public SimpleChatItem(String name) {
-        setName(name);
+        this(name, 0);
     }
 
     @Override
@@ -38,8 +46,17 @@ public class SimpleChatItem implements ChatItem {
     }
 
     @Override
+    public int getID() {
+        return ID.intValue();
+    }
+
+    @Override
     public void setName(String name) {
         this.name = new SimpleStringProperty(name);
+    }
+
+    public void setID(int ID) {
+        this.ID = new SimpleIntegerProperty(ID);
     }
 
     @Override

@@ -10,4 +10,7 @@ public enum CommandType {
     ERROR,
     END,
     UPDATE_USERS_LIST,
+    REGISTRATION,
+    REGISTRATION_SUCCESS,
+    NICKNAME_CHANGE
 }

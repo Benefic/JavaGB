@@ -10,6 +10,8 @@ public interface ChatItem {
 
     String getName();
 
+    int getID();
+
     void setName(String name);
 
     boolean isOnline();

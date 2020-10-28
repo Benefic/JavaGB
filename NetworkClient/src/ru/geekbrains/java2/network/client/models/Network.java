@@ -23,6 +23,7 @@ public class Network {
     private ObjectOutputStream outputStream;
     private Socket socket;
     private String username;
+    private int userID;
 
     public Network() {
         this(SERVER_ADDRESS, SERVER_PORT);
@@ -50,25 +51,7 @@ public class Network {
         if (isConnected()) {
             try {
                 Command authCommand = Command.authCommand(login, password);
-                outputStream.writeObject(authCommand);
-                Command command = readCommand();
-                if (command == null) {
-                    return "Failed to read command from server";
-                }
-                switch (command.getType()) {
-                    case AUTH_OK -> {
-                        AuthOkCommandData data = (AuthOkCommandData) command.getData();
-                        this.username = data.getUsername();
-                        return null;
-                    }
-                    case AUTH_ERROR -> {
-                        AuthErrorCommandData data = (AuthErrorCommandData) command.getData();
-                        return data.getErrorMessage();
-                    }
-                    default -> {
-                        return "Unknown type of command from server: " + command.getType();
-                    }
-                }
+                return getCommandResult(authCommand);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -79,8 +62,52 @@ public class Network {
         }
     }
 
+    public String sendRegistrationCommand(String login, String password, String nickname) {
+        if (isConnected()) {
+            try {
+                Command regCommand = Command.registrationCommand(nickname, login, password);
+                this.username = nickname;
+                return getCommandResult(regCommand);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                return e.getMessage();
+            }
+        } else {
+            return "Соединение не было установлено!";
+        }
+    }
+
+    private String getCommandResult(Command outCommand) throws IOException {
+        outputStream.writeObject(outCommand);
+        Command command = readCommand();
+        if (command == null) {
+            return "Failed to read command from server";
+        }
+        switch (command.getType()) {
+            case AUTH_OK -> {
+                AuthOkCommandData data = (AuthOkCommandData) command.getData();
+                this.username = data.getUsername();
+                this.userID = data.getUserID();
+                return null;
+            }
+            case AUTH_ERROR -> {
+                AuthErrorCommandData data = (AuthErrorCommandData) command.getData();
+                return data.getErrorMessage();
+            }
+            case REGISTRATION_SUCCESS -> {
+                RegistrationSuccessCommandData data = (RegistrationSuccessCommandData) command.getData();
+                this.userID = data.getUserID();
+                return null;
+            }
+            default -> {
+                return "Unknown type of command from server: " + command.getType();
+            }
+        }
+    }
+
     public void sendMessage(String message) throws IOException {
-        Command command = Command.publicMessageCommand(username, message);
+        Command command = Command.publicMessageCommand(userID, message);
         sendCommand(command);
     }
 
@@ -88,7 +115,7 @@ public class Network {
         outputStream.writeObject(command);
     }
 
-    public void sendPrivateMessage(String message, String recipient) throws IOException {
+    public void sendPrivateMessage(String message, int recipient) throws IOException {
         Command command = Command.privateMessageCommand(recipient, message);
         sendCommand(command);
     }
@@ -107,19 +134,17 @@ public class Network {
                         case INFO_MESSAGE -> {
                             MessageInfoCommandData data = (MessageInfoCommandData) command.getData();
                             String message = data.getMessage();
-                            String sender = data.getSender();
+                            int sender = data.getSender();
                             boolean isPublic = data.isPublic();
-                            String formattedMessage = sender != null ? String.format("%s: %s", sender, message) : message;
                             ChatItem chat;
                             if (isPublic) {
                                 chat = TestChatsRepository.getCurrent().getCommonGroup();
                             } else {
-                                chat = TestChatsRepository.getCurrent().getChatByName(sender);
+                                chat = TestChatsRepository.getCurrent().getChatByID(sender);
                             }
+                            String formattedMessage = sender != 0 ? String.format("%s: %s", TestChatsRepository.getCurrent().getChatByID(sender).getName(), message) : message;
                             chat.addMessage(formattedMessage, new Date());
-                            Platform.runLater(() -> {
-                                viewController.fillChat(chat.getName());
-                            });
+                            Platform.runLater(() -> viewController.fillChat(chat.getName()));
                         }
                         case ERROR -> {
                             ErrorCommandData data = (ErrorCommandData) command.getData();
@@ -128,13 +153,9 @@ public class Network {
                         }
                         case UPDATE_USERS_LIST -> {
                             UpdateUsersListCommandData data = (UpdateUsersListCommandData) command.getData();
-                            Platform.runLater(() -> {
-                                viewController.updateUsers(data.getUsers());
-                            });
+                            Platform.runLater(() -> viewController.updateUsers(data.getUsers()));
                         }
-                        default -> {
-                            Platform.runLater(() -> viewController.showError("Unknown command from server", command.getType().toString()));
-                        }
+                        default -> Platform.runLater(() -> viewController.showError("Unknown command from server", command.getType().toString()));
                     }
 
 
@@ -175,4 +196,8 @@ public class Network {
         }
     }
 
+    public void changeNick(String newNick) throws IOException {
+        Command command = Command.nicknameChangeCommand(newNick);
+        sendCommand(command);
+    }
 }

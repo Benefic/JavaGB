@@ -1,8 +1,8 @@
 package ru.geekbrains.java2.network.client.repository;
 
-
 import ru.geekbrains.java2.network.client.models.ChatItem;
 import ru.geekbrains.java2.network.client.models.SimpleChatItem;
+import ru.geekbrains.java2.network.clientserver.UserData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,12 +10,7 @@ import java.util.List;
 public class TestChatsRepository implements ChatsRepository {
 
     private static final ChatItem commonGroup = new SimpleChatItem("*Common group");
-    private static final List<ChatItem> allChats = List.of(
-            commonGroup,
-            new SimpleChatItem("Oleg"),
-            new SimpleChatItem("Alexey"),
-            new SimpleChatItem("Peter")
-    );
+    private static List<ChatItem> allChats = new ArrayList<>();
     private static TestChatsRepository current;
 
     public static TestChatsRepository getCurrent() {
@@ -25,13 +20,24 @@ public class TestChatsRepository implements ChatsRepository {
         return current;
     }
 
-    public ChatItem getChatByName(String name) {
+    public ChatItem getChatByID(int chatID) {
         for (ChatItem chat : allChats) {
-            if (chat.getName().equals(name)) {
+            if (chat.getID() == chatID) {
                 return chat;
             }
         }
         return null;
+    }
+
+    public ChatItem getChat(int chatID, String chatName) {
+        ChatItem chat = getChatByID(chatID);
+        if (chat == null) {
+            chat = new SimpleChatItem(chatName, chatID);
+        }
+        if (!chat.getName().equals(chatName)) {
+            chat.setName(chatName);
+        }
+        return chat;
     }
 
     @Override
@@ -40,13 +46,14 @@ public class TestChatsRepository implements ChatsRepository {
     }
 
     @Override
-    public List<ChatItem> getChats(List<String> users) {
+    public List<ChatItem> getChats(List<UserData> users) {
         List<ChatItem> chats = new ArrayList<>();
         chats.add(getCommonGroup());
-        for (String user : users) {
-            chats.add(getChatByName(user));
+        for (UserData user : users) {
+            chats.add(getChat(user.getUserID(), user.getUserName()));
         }
-        return chats;
+        allChats = chats;
+        return allChats;
     }
 
     @Override

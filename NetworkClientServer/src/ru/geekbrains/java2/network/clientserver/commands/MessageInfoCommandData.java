@@ -5,25 +5,25 @@ import java.io.Serializable;
 public class MessageInfoCommandData implements Serializable {
 
     private final String message;
-    private final String sender;
+    private final int senderID;
     private final boolean isPublic;
 
-    public MessageInfoCommandData(String message, String sender, boolean isPublic) {
+    public MessageInfoCommandData(String message, int senderID, boolean isPublic) {
         this.message = message;
-        this.sender = sender;
+        this.senderID = senderID;
         this.isPublic = isPublic;
     }
 
-    public MessageInfoCommandData(String message, String sender) {
-        this(message, sender, false);
+    public MessageInfoCommandData(String message, int senderID) {
+        this(message, senderID, false);
     }
 
     public String getMessage() {
         return message;
     }
 
-    public String getSender() {
-        return sender;
+    public int getSender() {
+        return senderID;
     }
 
     public boolean isPublic() {

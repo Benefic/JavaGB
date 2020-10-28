@@ -44,6 +44,7 @@ public class NetworkChatClient extends Application {
         authDialogStage.setTitle("Аутентификая чата");
         authDialogStage.initModality(Modality.WINDOW_MODAL);
         authDialogStage.initOwner(primaryStage);
+        authDialogStage.setResizable(false);
         Scene scene = new Scene(authDialogPanel);
         authDialogStage.setScene(scene);
         authDialogStage.show();
@@ -76,5 +77,9 @@ public class NetworkChatClient extends Application {
         primaryStage.show();
         primaryStage.setTitle(network.getUsername());
         network.waitMessages(viewController);
+    }
+
+    public void changeTitle(String title) {
+        primaryStage.setTitle(title);
     }
 }
