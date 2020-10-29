@@ -9,7 +9,7 @@ import java.util.List;
 
 public class TestChatsRepository implements ChatsRepository {
 
-    private static final ChatItem commonGroup = new SimpleChatItem("*Common group");
+    private static ChatItem commonGroup;
     private static List<ChatItem> allChats = new ArrayList<>();
     private static TestChatsRepository current;
 
@@ -42,6 +42,9 @@ public class TestChatsRepository implements ChatsRepository {
 
     @Override
     public ChatItem getCommonGroup() {
+        if (commonGroup == null) {
+            commonGroup = new SimpleChatItem("*Common group");
+        }
         return commonGroup;
     }
 

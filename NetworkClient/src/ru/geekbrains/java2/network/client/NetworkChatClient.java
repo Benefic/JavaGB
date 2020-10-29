@@ -73,6 +73,7 @@ public class NetworkChatClient extends Application {
     }
 
     public void openChat() {
+        viewController.initCommonGroup();
         authDialogStage.close();
         primaryStage.show();
         primaryStage.setTitle(network.getUsername());

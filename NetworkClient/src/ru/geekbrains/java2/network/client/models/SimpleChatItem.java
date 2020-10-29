@@ -4,14 +4,14 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import ru.geekbrains.java2.network.client.util.Logger;
 
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
 public class SimpleChatItem implements ChatItem {
 
-    private final List<Message> messages = new LinkedList<>();
+    private final List<ChatMessage> messages = new LinkedList<>();
     private StringProperty name;
     private boolean isOnline;
     private IntegerProperty ID;
@@ -19,10 +19,17 @@ public class SimpleChatItem implements ChatItem {
     public SimpleChatItem(String name, int ID) {
         setName(name);
         setID(ID);
+        loadHistory();
     }
+
 
     public SimpleChatItem(String name) {
         this(name, 0);
+    }
+
+    private void loadHistory() {
+        List<ChatMessage> history = Logger.readLog(ID.intValue());
+        messages.addAll(history);
     }
 
     @Override
@@ -31,13 +38,12 @@ public class SimpleChatItem implements ChatItem {
     }
 
     @Override
-    public List<Message> getMessages() {
+    public List<ChatMessage> getMessages() {
         return messages;
     }
 
-    @Override
-    public void addMessage(String message, Date timestamp) {
-        messages.add(new Message(timestamp, message));
+    public void addMessage(ChatMessage message) {
+        messages.add(message);
     }
 
     @Override
