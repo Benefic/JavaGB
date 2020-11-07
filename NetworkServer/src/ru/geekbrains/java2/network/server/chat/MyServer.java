@@ -12,6 +12,10 @@ import java.net.Socket;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class MyServer {
 
@@ -39,7 +43,7 @@ public class MyServer {
             while (!serverSocket.isClosed()) {
                 waitAndProcessNewClientConnection();
             }
-        } catch (IOException e) {
+        } catch (IOException | ExecutionException | InterruptedException e) {
             System.err.println("Failed to accept new connection");
             e.printStackTrace();
         } finally {
@@ -53,11 +57,27 @@ public class MyServer {
         }
     }
 
-    private void waitAndProcessNewClientConnection() throws IOException {
-        System.out.println("Ожидание нового подключения....");
-        Socket clientSocket = serverSocket.accept();
-        System.out.println("Клиент подключился");// /auth login password
-        processClientConnection(clientSocket);
+    private void waitAndProcessNewClientConnection() throws ExecutionException, InterruptedException, IOException {
+
+        ExecutorService clientConnectionService = Executors.newSingleThreadExecutor();
+        Future<Boolean> connectionSuccess = clientConnectionService.submit(() -> {
+
+            System.out.println("Ожидание нового подключения....");
+            Socket clientSocket;
+            try {
+                clientSocket = serverSocket.accept();
+                System.out.println("Клиент подключился");// /auth login password\
+                processClientConnection(clientSocket);
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        });
+
+        if (!connectionSuccess.get()) {
+            throw new IOException();
+        }
     }
 
     private void processClientConnection(Socket clientSocket) throws IOException {
