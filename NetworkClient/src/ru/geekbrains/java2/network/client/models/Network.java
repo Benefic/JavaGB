@@ -3,6 +3,7 @@ package ru.geekbrains.java2.network.client.models;
 import javafx.application.Platform;
 import ru.geekbrains.java2.network.client.controllers.ViewController;
 import ru.geekbrains.java2.network.client.repository.TestChatsRepository;
+import ru.geekbrains.java2.network.client.util.Logger;
 import ru.geekbrains.java2.network.clientserver.Command;
 import ru.geekbrains.java2.network.clientserver.commands.*;
 
@@ -51,8 +52,8 @@ public class Network {
         if (isConnected()) {
             try {
                 Command authCommand = Command.authCommand(login, password);
+                Logger.setLogin(login);
                 return getCommandResult(authCommand);
-
             } catch (IOException e) {
                 e.printStackTrace();
                 return e.getMessage();
@@ -67,6 +68,7 @@ public class Network {
             try {
                 Command regCommand = Command.registrationCommand(nickname, login, password);
                 this.username = nickname;
+                Logger.setLogin(login);
                 return getCommandResult(regCommand);
 
             } catch (IOException e) {
@@ -143,8 +145,10 @@ public class Network {
                                 chat = TestChatsRepository.getCurrent().getChatByID(sender);
                             }
                             String formattedMessage = sender != 0 ? String.format("%s: %s", TestChatsRepository.getCurrent().getChatByID(sender).getName(), message) : message;
-                            chat.addMessage(formattedMessage, new Date());
+                            ChatMessage chatMessage = new Message(new Date(), formattedMessage);
+                            chat.addMessage(chatMessage);
                             Platform.runLater(() -> viewController.fillChat(chat.getName()));
+                            Logger.logMessage(chat.getID(), chatMessage);
                         }
                         case ERROR -> {
                             ErrorCommandData data = (ErrorCommandData) command.getData();
@@ -161,7 +165,6 @@ public class Network {
 
                 }
             } catch (IOException e) {
-                e.printStackTrace();
                 System.out.println("Соединение было потеряно!");
             }
         });

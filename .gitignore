@@ -5,3 +5,5 @@
 /out/
 /src/main/java/META-INF/MANIFEST.MF
 /src/main/resources/META-INF/MANIFEST.MF
+/*.s3db
+/history_*

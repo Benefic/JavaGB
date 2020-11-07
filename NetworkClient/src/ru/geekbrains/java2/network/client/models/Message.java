@@ -2,7 +2,7 @@ package ru.geekbrains.java2.network.client.models;
 
 import java.util.Date;
 
-public class Message {
+public class Message implements ChatMessage {
     private Date timestamp;
     private String message;
 

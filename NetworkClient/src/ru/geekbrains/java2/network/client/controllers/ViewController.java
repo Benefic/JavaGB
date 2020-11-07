@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import ru.geekbrains.java2.network.client.NetworkChatClient;
 import ru.geekbrains.java2.network.client.models.ChatItem;
+import ru.geekbrains.java2.network.client.models.ChatMessage;
 import ru.geekbrains.java2.network.client.models.Message;
 import ru.geekbrains.java2.network.client.models.Network;
 import ru.geekbrains.java2.network.client.repository.ChatsRepository;
@@ -42,8 +43,6 @@ public class ViewController {
     @FXML
     public void initialize() {
 
-        groupChat = repository.getCommonGroup();
-        currentChat = groupChat;
         ObservableList<ChatItem> chatsData = FXCollections.observableArrayList(repository.getAllChats());
         usersList.setItems(new SortedList<>(chatsData).sorted());
         usersList.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -52,6 +51,11 @@ public class ViewController {
         });
         sendButton.setOnAction(event -> sendMessage());
         textField.setOnAction(event -> sendMessage());
+    }
+
+    public void initCommonGroup() {
+        groupChat = repository.getCommonGroup();
+        currentChat = groupChat;
     }
 
     private void setEnabled() {
@@ -66,7 +70,7 @@ public class ViewController {
 
     private void fillChat() {
         chatHistory.clear();
-        for (Message message : currentChat.getMessages()) {
+        for (ChatMessage message : currentChat.getMessages()) {
             appendMessage(message);
         }
     }
@@ -82,7 +86,7 @@ public class ViewController {
         if (message != null && !message.isBlank()) {
             String myMessage = "Я: " + message;
             appendMessage(new Message(new Date(), myMessage));
-            currentChat.addMessage(myMessage, new Date());
+            currentChat.addMessage(new Message(new Date(), myMessage));
             textField.clear();
 
             try {
@@ -103,7 +107,7 @@ public class ViewController {
         this.network = network;
     }
 
-    public void appendMessage(Message message) {
+    public void appendMessage(ChatMessage message) {
         String timestamp = DateFormat.getInstance().format(message.getTimestamp());
         chatHistory.appendText(timestamp);
         chatHistory.appendText(System.lineSeparator());

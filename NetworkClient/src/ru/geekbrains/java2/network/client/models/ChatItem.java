@@ -1,12 +1,11 @@
 package ru.geekbrains.java2.network.client.models;
 
-import java.util.Date;
 import java.util.List;
 
 public interface ChatItem {
-    List<Message> getMessages();
+    List<ChatMessage> getMessages();
 
-    void addMessage(String message, Date timestamp);
+    void addMessage(ChatMessage message);
 
     String getName();
 
