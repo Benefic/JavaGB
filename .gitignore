@@ -8,3 +8,5 @@
 /*.s3db
 /history_*
 /NetworkServer/target/
+/*.log
+/production/
