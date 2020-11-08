@@ -12,4 +12,11 @@ public class RegistrationSuccessCommandData implements Serializable {
     public int getUserID() {
         return userID;
     }
+
+    @Override
+    public String toString() {
+        return "RegistrationSuccessCommandData{" +
+                "userID=" + userID +
+                '}';
+    }
 }

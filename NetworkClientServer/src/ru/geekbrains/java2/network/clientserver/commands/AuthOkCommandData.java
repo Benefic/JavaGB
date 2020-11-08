@@ -19,4 +19,12 @@ public class AuthOkCommandData implements Serializable {
     public int getUserID() {
         return userID;
     }
+
+    @Override
+    public String toString() {
+        return "AuthOkCommandData{" +
+                "username='" + username + '\'' +
+                ", userID=" + userID +
+                '}';
+    }
 }

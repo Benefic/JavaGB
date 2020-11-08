@@ -13,4 +13,11 @@ public class AuthErrorCommandData implements Serializable {
     public String getErrorMessage() {
         return errorMessage;
     }
+
+    @Override
+    public String toString() {
+        return "AuthErrorCommandData{" +
+                "errorMessage='" + errorMessage + '\'' +
+                '}';
+    }
 }

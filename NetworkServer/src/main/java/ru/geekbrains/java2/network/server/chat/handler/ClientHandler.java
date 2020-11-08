@@ -1,5 +1,6 @@
 package ru.geekbrains.java2.network.server.chat.handler;
 
+import org.apache.log4j.Logger;
 import ru.geekbrains.java2.network.clientserver.Command;
 import ru.geekbrains.java2.network.clientserver.CommandType;
 import ru.geekbrains.java2.network.clientserver.commands.*;
@@ -14,6 +15,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class ClientHandler {
+
+    private static final Logger Log = Logger.getLogger(ClientHandler.class);
 
     private static final long AUTH_TIMEOUT = 120_000;
     private final MyServer myServer;
@@ -40,12 +43,12 @@ public class ClientHandler {
                     readMessages();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.error("Client handle error", e);
             } finally {
                 try {
                     closeConnection();
                 } catch (IOException e) {
-                    System.err.println("Failed to close connection!");
+                    Log.error("Failed to close connection!", e);
                 }
             }
         }).start();
@@ -65,7 +68,7 @@ public class ClientHandler {
             if (command == null) {
                 continue;
             }
-
+            Log.info("Incoming command: " + command);
             switch (command.getType()) {
                 case END -> {
                     return;
@@ -92,7 +95,7 @@ public class ClientHandler {
                         sendMessage(Command.authErrorCommand("Error changing nickname!"));
                     }
                 }
-                default -> System.err.println("Unknown type of command: " + command.getType());
+                default -> Log.error("Unknown type of command: " + command.getType());
             }
 
         }
@@ -103,8 +106,7 @@ public class ClientHandler {
             return (Command) in.readObject();
         } catch (ClassNotFoundException e) {
             String error = "Unknown type of object from client";
-            System.err.println(error);
-            e.printStackTrace();
+            Log.error(error, e);
             sendMessage(Command.errorCommand(error));
             return null;
         }
@@ -120,7 +122,7 @@ public class ClientHandler {
                         Thread.sleep(100);
                         closeConnection();
                     } catch (IOException | InterruptedException e) {
-                        e.printStackTrace();
+                        Log.error("Authentication timeout!", e);
                     }
                 }
             }
@@ -130,6 +132,7 @@ public class ClientHandler {
             if (command == null) {
                 continue;
             }
+            Log.info("Authentication try: " + command);
             if (command.getType() == CommandType.AUTH) {
                 boolean isSuccessAuth = processAuthCommand(command);
                 if (isSuccessAuth) {
@@ -163,7 +166,7 @@ public class ClientHandler {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Log.error("Authentication error!", e);
                 return false;
             }
             myServer.broadcastMessage(this, Command.messageInfoCommand(user.getUsername() + " joined to chat!", user.getId(), true));
@@ -207,6 +210,7 @@ public class ClientHandler {
     }
 
     public void sendMessage(Command command) throws IOException {
+        Log.info(command);
         out.writeObject(command);
     }
 

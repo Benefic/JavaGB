@@ -13,4 +13,11 @@ public class ErrorCommandData implements Serializable {
     public String getErrorMessage() {
         return errorMessage;
     }
+
+    @Override
+    public String toString() {
+        return "ErrorCommandData{" +
+                "errorMessage='" + errorMessage + '\'' +
+                '}';
+    }
 }

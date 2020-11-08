@@ -30,4 +30,12 @@ public class MessageInfoCommandData implements Serializable {
         return isPublic;
     }
 
+    @Override
+    public String toString() {
+        return "MessageInfoCommandData{" +
+                "message='" + message + '\'' +
+                ", senderID=" + senderID +
+                ", isPublic=" + isPublic +
+                '}';
+    }
 }

@@ -1,5 +1,6 @@
 package ru.geekbrains.java2.network.server.chat;
 
+import org.apache.log4j.Logger;
 import ru.geekbrains.java2.network.clientserver.Command;
 import ru.geekbrains.java2.network.clientserver.UserData;
 import ru.geekbrains.java2.network.server.chat.auth.AuthService;
@@ -19,6 +20,8 @@ import java.util.concurrent.Future;
 
 public class MyServer {
 
+    private static final Logger Log = Logger.getLogger(MyServer.class);
+
     private final ServerSocket serverSocket;
     private final List<ClientHandler> clients = new ArrayList<>();
     private final AuthService authService;
@@ -30,13 +33,12 @@ public class MyServer {
     }
 
     public void start() throws IOException {
-        System.out.println("Сервер был запущен");
+        Log.info("Сервер был запущен");
 
         try {
             authService.start();
         } catch (ClassNotFoundException | SQLException e) {
-            System.err.println("Unable to create AuthService");
-            e.printStackTrace();
+            Log.error("Unable to create AuthService", e);
             return;
         }
         try {
@@ -44,14 +46,12 @@ public class MyServer {
                 waitAndProcessNewClientConnection();
             }
         } catch (IOException | ExecutionException | InterruptedException e) {
-            System.err.println("Failed to accept new connection");
-            e.printStackTrace();
+            Log.error("Failed to accept new connection", e);
         } finally {
             try {
                 authService.stop();
             } catch (SQLException e) {
-                System.err.println("Failed to close AuthService");
-                e.printStackTrace();
+                Log.error("Failed to close AuthService");
             }
             serverSocket.close();
         }
@@ -62,15 +62,15 @@ public class MyServer {
         ExecutorService clientConnectionService = Executors.newSingleThreadExecutor();
         Future<Boolean> connectionSuccess = clientConnectionService.submit(() -> {
 
-            System.out.println("Ожидание нового подключения....");
+            Log.info("Ожидание нового подключения....");
             Socket clientSocket;
             try {
                 clientSocket = serverSocket.accept();
-                System.out.println("Клиент подключился");// /auth login password\
+                Log.info("Клиент подключился");// /auth login password\
                 processClientConnection(clientSocket);
                 return true;
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.error("Ошибка подключения клиента", e);
                 return false;
             }
         });

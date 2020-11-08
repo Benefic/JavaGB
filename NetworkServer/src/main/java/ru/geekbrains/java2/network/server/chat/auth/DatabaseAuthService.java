@@ -1,10 +1,14 @@
 package ru.geekbrains.java2.network.server.chat.auth;
 
+import org.apache.log4j.Logger;
 import ru.geekbrains.java2.network.server.chat.User;
 
 import java.sql.*;
 
 public class DatabaseAuthService implements AuthService {
+
+    private static final Logger Log = Logger.getLogger(DatabaseAuthService.class);
+
 
     private static final String URL = "jdbc:sqlite:InnerDB.s3db";
     private static final String USERS_TABLE = "users";
@@ -12,7 +16,6 @@ public class DatabaseAuthService implements AuthService {
     private static final String USER_NAME = "name";
     private static final String USER_LOGIN = "login";
     private static final String USER_PASSWORD = "password";
-
 
     public static Connection connection;
     public static Statement statement;
@@ -44,7 +47,7 @@ public class DatabaseAuthService implements AuthService {
                 user = new User(rs.getInt(USER_ID), rs.getString(USER_NAME));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Log.error("Failed to get user", e);
         }
         return user;
     }
@@ -61,7 +64,7 @@ public class DatabaseAuthService implements AuthService {
                 user = new User(rs.getInt(USER_ID), rs.getString(USER_NAME));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Log.error("Failed to get user", e);
         }
         return user;
     }
@@ -81,7 +84,7 @@ public class DatabaseAuthService implements AuthService {
             // ошибки не было, пользователь успешно добавлен, можно извлекать его ID
             user = getUserByLogin(login);
         } catch (SQLException e) {
-            e.printStackTrace();
+            Log.error("Failed to create user", e);
         }
         return user;
     }
@@ -98,7 +101,7 @@ public class DatabaseAuthService implements AuthService {
             statement.execute();
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            Log.error("failed to change nik", e);
             return false;
         }
     }

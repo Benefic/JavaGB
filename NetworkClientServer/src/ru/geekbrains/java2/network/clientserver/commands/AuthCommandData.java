@@ -19,4 +19,12 @@ public class AuthCommandData implements Serializable {
     public String getPassword() {
         return password;
     }
+
+    @Override
+    public String toString() {
+        return "AuthCommandData{" +
+                "login='" + login + '\'' +
+                ", password='" + "********" + '\'' +
+                '}';
+    }
 }
