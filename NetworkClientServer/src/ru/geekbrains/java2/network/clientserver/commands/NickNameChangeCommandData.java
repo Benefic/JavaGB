@@ -12,4 +12,11 @@ public class NickNameChangeCommandData implements Serializable {
     public String getNickname() {
         return nickname;
     }
+
+    @Override
+    public String toString() {
+        return "NickNameChangeCommandData{" +
+                "nickname='" + nickname + '\'' +
+                '}';
+    }
 }

@@ -1,11 +1,15 @@
 package ru.geekbrains.java2.network.server.chat.auth;
 
+import org.apache.log4j.Logger;
 import ru.geekbrains.java2.network.server.chat.User;
 
 import java.util.List;
 import java.util.Random;
 
 public class BaseAuthService implements AuthService {
+
+    private static final Logger Log = Logger.getLogger(BaseAuthService.class);
+
 
     private static final List<User> USERS = List.of(
             new User(0, "login1", "pass1", "Oleg"),
@@ -15,12 +19,12 @@ public class BaseAuthService implements AuthService {
 
     @Override
     public void start() {
-        System.out.println("Auth service has been started");
+        Log.info("Auth service has been started");
     }
 
     @Override
     public void stop() {
-        System.out.println("Auth service has been finished");
+        Log.info("Auth service has been finished");
     }
 
     @Override

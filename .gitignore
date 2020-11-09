@@ -7,3 +7,6 @@
 /src/main/resources/META-INF/MANIFEST.MF
 /*.s3db
 /history_*
+/NetworkServer/target/
+/*.log
+/production/

@@ -24,4 +24,13 @@ public class RegistrationCommandData implements Serializable {
     public String getPassword() {
         return password;
     }
+
+    @Override
+    public String toString() {
+        return "RegistrationCommandData{" +
+                "name='" + name + '\'' +
+                ", login='" + login + '\'' +
+                ", password='" + "*******" + '\'' +
+                '}';
+    }
 }
