@@ -34,7 +34,7 @@ public class MyStack<T> {
 
     public void push(T item) {
         if (isFull()) {
-            throw new StackOverflowError();
+            reCapacity(size + size / 2);
         }
         list[size] = item;
         size++;
