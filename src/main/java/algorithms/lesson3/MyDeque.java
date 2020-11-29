@@ -5,7 +5,7 @@ import java.util.NoSuchElementException;
 
 public class MyDeque<T> {
 
-    private final int DEFAULT_CAPACITY = 10;
+    private static final int DEFAULT_CAPACITY = 10;
     private T[] list;
     private int size;
     private int begin;
@@ -56,7 +56,6 @@ public class MyDeque<T> {
     public void insertRight(T item) {
         if (isFull()) {
             reCapacity(size + size / 2);
-            //throw new IllegalStateException();
         }
         size++;
         list[end] = item;
@@ -66,7 +65,6 @@ public class MyDeque<T> {
     public void insertLeft(T item) {
         if (isFull()) {
             reCapacity(size + size / 2);
-//            throw new IllegalStateException();
         }
         size++;
         begin = nextLeftIndex(begin);
