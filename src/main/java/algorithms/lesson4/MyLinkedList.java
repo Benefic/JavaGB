@@ -212,14 +212,6 @@ public class MyLinkedList<T> implements Iterable<T> {
             return current.getValue();
         }
 
-        @Override
-        public void remove() {
-            Node next = current.getNext();
-            current.getPrev().setNext(next);
-            next.setPrev(current.getPrev());
-            current = next;
-            size--;
-        }
     }
 
     private class Node {

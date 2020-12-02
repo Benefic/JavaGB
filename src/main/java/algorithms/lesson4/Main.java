@@ -1,7 +1,5 @@
 package algorithms.lesson4;
 
-import java.util.Iterator;
-
 public class Main {
     public static void main(String[] args) {
         MyLinkedList<String> mll = new MyLinkedList<>();
@@ -40,19 +38,8 @@ public class Main {
         mq.enqueue("asd");
         mq.enqueue("zxc");
 
-//        for (int i = 0; i < 3; i++) {
-//            System.out.println(mq.dequeue());
-//        }
-
-        Iterator<String> i = mll.iterator();
-
-        while (i.hasNext()) {
-            String s = i.next();
-            if (s.equals("Katya")) {
-                i.remove();
-            }
+        for (int i = 0; i < 3; i++) {
+            System.out.println(mq.dequeue());
         }
-
-        System.out.println(mll);
     }
 }
