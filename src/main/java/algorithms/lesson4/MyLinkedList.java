@@ -1,4 +1,4 @@
-package lesson4;
+package algorithms.lesson4;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;

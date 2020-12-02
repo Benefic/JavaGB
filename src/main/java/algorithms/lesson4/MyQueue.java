@@ -1,4 +1,4 @@
-package lesson4;
+package algorithms.lesson4;
 
 public class MyQueue<T> {
     private final MyLinkedList<T> queue = new MyLinkedList<>();
