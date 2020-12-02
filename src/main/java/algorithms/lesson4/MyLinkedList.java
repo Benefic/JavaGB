@@ -1,6 +1,7 @@
 package algorithms.lesson4;
 
 import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
 public class MyLinkedList<T> implements Iterable<T> {
@@ -21,6 +22,10 @@ public class MyLinkedList<T> implements Iterable<T> {
     @Override
     public Iterator<T> iterator() {
         return new Iter();
+    }
+
+    public ListIterator<T> listIterator() {
+        return new ListIter();
     }
 
     public boolean isEmpty() {
@@ -264,6 +269,114 @@ public class MyLinkedList<T> implements Iterable<T> {
 
         public void setPrev(Node prev) {
             this.prev = prev;
+        }
+    }
+
+    private class ListIter implements ListIterator<T> {
+
+        Node next = first;
+        Node previous = next.prev;
+        Node current;
+        int nextIndex;
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        @Override
+        public T next() {
+            if (!hasNext()) {
+                throw new NullPointerException();
+            }
+            previous = next;
+            next = next.getNext();
+            nextIndex++;
+            current = previous;
+            return current.getValue();
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            return previous != null;
+        }
+
+        @Override
+        public T previous() {
+            if (!hasPrevious()) {
+                throw new NullPointerException();
+            }
+            next = previous;
+            previous = previous.getPrev();
+            nextIndex--;
+            current = next;
+            return current.getValue();
+        }
+
+        @Override
+        public int nextIndex() {
+            return nextIndex;
+        }
+
+        @Override
+        public int previousIndex() {
+            if (nextIndex == 0) {
+                throw new IndexOutOfBoundsException("index = -1");
+            }
+            return nextIndex - 1;
+        }
+
+        @Override
+        public void set(T item) {
+            checkCurrent();
+            current.setValue(item);
+        }
+
+        @Override
+        public void remove() {
+            if (size == 0) return;
+            checkCurrent();
+            if (current == previous) {
+                previous = current.getPrev();
+                previous.setNext(next);
+                if (next != null) {
+                    next.setPrev(previous);
+                }
+                current = previous;
+            } else {
+                next = current.getNext();
+                next.setPrev(previous);
+                if (previous != null) {
+                    previous.setNext(next);
+                }
+                current = next;
+            }
+            size--;
+        }
+
+        @Override
+        public void add(T item) {
+            checkCurrent();
+            current = new Node(item);
+            current.setNext(next);
+            current.setPrev(previous);
+            if (previous != null) {
+                previous.setNext(current);
+            } else {
+                first = current;
+            }
+            if (next != null) {
+                next.setPrev(current);
+            } else {
+                last = current;
+            }
+            size++;
+        }
+
+        private void checkCurrent() {
+            if (current == null) {
+                throw new IllegalStateException();
+            }
         }
     }
 }
