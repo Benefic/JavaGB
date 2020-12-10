@@ -16,6 +16,17 @@ public class MyTreeMap<Key extends Comparable<Key>, Value> {
         return node.size;
     }
 
+    public int height() {
+        return height(root);
+    }
+
+    private int height(Node node) {
+        if (node == null) {
+            return 0;
+        }
+        return node.height;
+    }
+
     public boolean isEmpty() {
         return root == null;
     }
@@ -71,6 +82,7 @@ public class MyTreeMap<Key extends Comparable<Key>, Value> {
             node.right = put(node.right, key, value);
         }
         node.size = size(node.left) + size(node.right) + 1;
+        node.height = Math.max(height(node.left), height(node.right)) + 1;
         return node;
     }
 
@@ -88,6 +100,20 @@ public class MyTreeMap<Key extends Comparable<Key>, Value> {
         return min(node.left);
     }
 
+    public Key maxKey() {
+        if (isEmpty()) {
+            throw new NoSuchElementException("map empty");
+        }
+        return max(root).key;
+    }
+
+    private Node max(Node node) {
+        if (node.right == null) {
+            return node;
+        }
+        return max(node.right);
+    }
+
     public void deleteMin() {
         if (isEmpty()) {
             throw new NoSuchElementException("map empty");
@@ -101,6 +127,7 @@ public class MyTreeMap<Key extends Comparable<Key>, Value> {
         }
         node.left = deleteMin(node.left);
         node.size = size(node.left) + size(node.right) + 1;
+        node.height = Math.max(height(node.left), height(node.right)) + 1;
         return node;
     }
 
@@ -132,6 +159,7 @@ public class MyTreeMap<Key extends Comparable<Key>, Value> {
         }
 
         node.size = size(node.left) + size(node.right) + 1;
+        node.height = Math.max(height(node.left), height(node.right)) + 1;
         return node;
     }
 
@@ -147,17 +175,27 @@ public class MyTreeMap<Key extends Comparable<Key>, Value> {
         return toString(node.left) + " " + node.key + " " + toString(node.right);
     }
 
+    public boolean isBalanced() {
+        return isBalanced(root);
+    }
+
+    private boolean isBalanced(Node node) {
+        return Math.abs(size(node.left) - size(node.right)) < 2;
+    }
+
     private class Node {
         Key key;
         Value value;
         Node left;
         Node right;
         int size;
+        int height;
 
         public Node(Key key, Value value) {
             this.key = key;
             this.value = value;
             size = 1;
+            height = 0;
         }
     }
 }
