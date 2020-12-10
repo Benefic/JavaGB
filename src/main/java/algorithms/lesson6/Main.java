@@ -8,7 +8,7 @@ public class Main {
         Random random = new Random();
 
         int balanced = 0;
-        int mapCount = 200;
+        int mapCount = 20;
         for (int i = 0; i < mapCount; i++) {
             MyTreeMap<Integer, Integer> map = new MyTreeMap<>();
             while (map.height() < 5) {  // 6 уровень - высота 5
@@ -21,7 +21,7 @@ public class Main {
             }
         }
 
-        System.out.printf("Percent of balance: %.2d%% \n", (double) (balanced / mapCount) * 100);
+        System.out.printf("Percent of balance: %.2f%% \n", ((float) balanced / mapCount) * 100);
 
         MyTreeMap<Integer, String> map = new MyTreeMap<>();
 
