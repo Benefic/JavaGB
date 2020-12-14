@@ -180,6 +180,9 @@ public class MyTreeMap<Key extends Comparable<Key>, Value> {
     }
 
     private boolean isBalanced(Node node) {
+        if (node == null) {
+            return true;
+        }
         return Math.abs(size(node.left) - size(node.right)) < 2;
     }
 
