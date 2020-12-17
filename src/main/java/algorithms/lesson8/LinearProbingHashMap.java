@@ -3,7 +3,7 @@ package algorithms.lesson8;
 import java.util.Arrays;
 
 public class LinearProbingHashMap<Key, Value> {
-    private final int capacity = 97;
+    private final int capacity = 7;
     private final Key DELETED;
     private final Key[] keys;
     private final Value[] values;
@@ -64,16 +64,32 @@ public class LinearProbingHashMap<Key, Value> {
 
     public Value get(Key key) {
         checkKeyNotNull(key);
+        int i = indexOf(key);
+        return i == -1 ? null : values[i];
+    }
+
+    public Value remove(Key key) {
+        checkKeyNotNull(key);
+        int i = indexOf(key);
+        if (i >= 0) {
+            Value tmp = values[i];
+            keys[i] = DELETED;
+            values[i] = null;
+            return tmp;
+        }
+        return null;
+    }
+
+    private int indexOf(Key key) {
         int i = hash(key);
         int step = hash2(key);
         while (keys[i] != null) {
             if (key.equals(keys[i])) {
-                return values[i];
+                return i;
             }
             i = (i + step) % capacity;
         }
-
-        return null;
+        return -1;
     }
 
     @Override

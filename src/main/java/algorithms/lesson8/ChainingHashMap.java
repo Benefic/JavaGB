@@ -60,6 +60,17 @@ public class ChainingHashMap<Key, Value> {
         return null;
     }
 
+    public Value remove(Key key) {
+        checkKeyNotNull(key);
+        int i = hash(key);
+        for (Node node : st[i]) {
+            if (key.equals(node.key)) {
+                return st[i].remove().value;
+            }
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
